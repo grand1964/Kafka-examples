@@ -28,16 +28,21 @@ public class KafkaProducerConfig {
                 StringSerializer.class);
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
                 JsonSerializer.class);
+        /*props.put(JsonSerializer.TYPE_MAPPINGS,
+                "full:ru.yandex.grand1964.kafka_demo.dto.StatInDto," +
+                        "part:ru.yandex.grand1964.kafka_demo.dto.StatPartDto");*/
         return props;
     }
 
     @Bean
-    public ProducerFactory<String, StatInDto> producerFactory() {
+    //public ProducerFactory<String, Object> multiProducerFactory() {
+    public ProducerFactory<String, StatInDto> multiProducerFactory() {
         return new DefaultKafkaProducerFactory<>(producerConfigs());
     }
 
     @Bean
+    //public KafkaTemplate<String, Object> kafkaTemplate() {
     public KafkaTemplate<String, StatInDto> kafkaTemplate() {
-        return new KafkaTemplate<>(producerFactory());
+        return new KafkaTemplate<>(multiProducerFactory());
     }
 }
