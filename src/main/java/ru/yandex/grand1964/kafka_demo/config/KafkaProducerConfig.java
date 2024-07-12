@@ -9,7 +9,6 @@ import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JsonSerializer;
-import ru.yandex.grand1964.kafka_demo.dto.StatInDto;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,21 +27,19 @@ public class KafkaProducerConfig {
                 StringSerializer.class);
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
                 JsonSerializer.class);
-        /*props.put(JsonSerializer.TYPE_MAPPINGS,
+        props.put(JsonSerializer.TYPE_MAPPINGS,
                 "full:ru.yandex.grand1964.kafka_demo.dto.StatInDto," +
-                        "part:ru.yandex.grand1964.kafka_demo.dto.StatPartDto");*/
+                        "part:ru.yandex.grand1964.kafka_demo.dto.StatPartDto");
         return props;
     }
 
     @Bean
-    //public ProducerFactory<String, Object> multiProducerFactory() {
-    public ProducerFactory<String, StatInDto> multiProducerFactory() {
+    public ProducerFactory<String, Object> multiProducerFactory() {
         return new DefaultKafkaProducerFactory<>(producerConfigs());
     }
 
     @Bean
-    //public KafkaTemplate<String, Object> kafkaTemplate() {
-    public KafkaTemplate<String, StatInDto> kafkaTemplate() {
+    public KafkaTemplate<String, Object> kafkaTemplate() {
         return new KafkaTemplate<>(multiProducerFactory());
     }
 }

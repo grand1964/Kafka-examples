@@ -15,13 +15,11 @@ import java.util.concurrent.CompletableFuture;
 @RestController
 @RequestMapping
 public class MsgController {
-    //private final KafkaTemplate<String, Object> kafkaTemplate;
-    private final KafkaTemplate<String, StatInDto> kafkaTemplate;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
     private final KafkaAdmin kafkaAdmin;
 
     @Autowired
-    //public MsgController(KafkaTemplate<String, Object> kafkaTemplate, KafkaAdmin kafkaAdmin) {
-    public MsgController(KafkaTemplate<String, StatInDto> kafkaTemplate, KafkaAdmin kafkaAdmin) {
+    public MsgController(KafkaTemplate<String, Object> kafkaTemplate, KafkaAdmin kafkaAdmin) {
         this.kafkaTemplate = kafkaTemplate;
         this.kafkaAdmin = kafkaAdmin;
         kafkaTemplate.setKafkaAdmin(kafkaAdmin);
@@ -40,8 +38,7 @@ public class MsgController {
     //посылка полных данных в Kafka
     @PostMapping("/send-full")
     public void sendMsg(@RequestParam String topic, @RequestParam String key, @RequestBody StatInDto dto){
-        //CompletableFuture<SendResult<String, Object>> future = kafkaTemplate.send(topic, dto);
-        CompletableFuture<SendResult<String, StatInDto>> future = kafkaTemplate.send(topic, key, dto);
+        CompletableFuture<SendResult<String, Object>> future = kafkaTemplate.send(topic, key, dto);
         future.whenComplete((ok,ex) -> {
             if (ok != null) {
                 System.out.println(ok);
@@ -54,10 +51,10 @@ public class MsgController {
 
 
     //посылка частичных данных в Kafka
-    /*@PostMapping("/send-part")
+    @PostMapping("/send-part")
     public void sendMsg(@RequestBody StatInDto dto){
         CompletableFuture<SendResult<String, Object>> future = kafkaTemplate.send(
-                dto.getApp(), new StatPartDto(dto));
+                dto.getApp(), dto.getUri(), new StatPartDto(dto));
         future.whenComplete((ok,ex) -> {
             if (ok != null) {
                 System.out.println(ok);
@@ -66,6 +63,5 @@ public class MsgController {
             }
         });
         kafkaTemplate.flush();
-    }*/
-
+    }
 }
