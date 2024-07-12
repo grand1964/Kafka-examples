@@ -1,6 +1,7 @@
 package ru.yandex.grand1964.kafka_demo.config;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,35 +26,21 @@ public class KafkaConsumerConfig {
     @Value("${spring.kafka.bootstrap-servers}")
     private String kafkaServer;
 
-    //создаем конвертер, поддерживающий разные типы
     @Bean
-    public RecordMessageConverter multiTypeConverter() {
-        StringJsonMessageConverter converter = new StringJsonMessageConverter();
-        DefaultJackson2JavaTypeMapper typeMapper = new DefaultJackson2JavaTypeMapper();
-        typeMapper.setTypePrecedence(Jackson2JavaTypeMapper.TypePrecedence.TYPE_ID);
-        typeMapper.addTrustedPackages("ru.yandex.grand1964.kafka_demo.dto");
-        Map<String, Class<?>> mappings = new HashMap<>();
-        mappings.put("full", StatInDto.class); //полная информация
-        mappings.put("part", StatPartDto.class); //неполная информация
-        typeMapper.setIdClassMapping(mappings);
-        converter.setTypeMapper(typeMapper);
-        return converter;
-    }
-
-    @Bean
-    public ConsumerFactory<String, Object> multiTypeConsumerFactory() {
+    public ConsumerFactory<String, StatInDto> consumerFactory() {
         HashMap<String, Object> props = new HashMap<>();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaServer);
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
+        props.put(JsonDeserializer.TRUSTED_PACKAGES, "ru.yandex.grand1964.kafka_demo.dto");
         return new DefaultKafkaConsumerFactory<>(props);
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, Object> multiTypeKafkaListenerContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<String, Object> factory =
+    public ConcurrentKafkaListenerContainerFactory<String, StatInDto> multiTypeKafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, StatInDto> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(multiTypeConsumerFactory());
-        factory.setRecordMessageConverter(multiTypeConverter());
+        factory.setConsumerFactory(consumerFactory());
         return factory;
     }
 }

@@ -11,4 +11,9 @@ public class StatInDto {
     private String uri;
     private String ip;
     private String timestamp;
+
+    @Override
+    public String toString() {
+        return String.format("{\"app\":%s,\"uri\":%s,\"ip\":%s,\"timestamp:\":%s}",app,uri,ip,timestamp);
+    }
 }
