@@ -43,8 +43,10 @@ public class MsgController {
 
     //посылка полных данных в Kafka
     @PostMapping("/send-kv")
-    public void sendKeyValue(@RequestParam String topic, @RequestParam String key, @RequestBody StatInDto dto){
-        CompletableFuture<SendResult<String, StatInDto>> future = kafkaTemplate.send(topic, key, dto);
+    //public void sendKeyValue(@RequestParam String topic, @RequestParam String key, @RequestBody StatInDto dto){
+    public void sendKeyValue(@RequestParam String topic, @RequestBody StatInDto dto){
+        CompletableFuture<SendResult<String, StatInDto>> future = kafkaTemplate.send(topic, dto.getUri(), dto);
+        //CompletableFuture<SendResult<String, StatInDto>> future = kafkaTemplate.send(topic, key, dto);
         future.whenComplete((ok,ex) -> {
             if (ok != null) {
                 System.out.println(ok);
@@ -56,9 +58,11 @@ public class MsgController {
     }
 
     @PostMapping("/send-record")
-    public void sendRecord(@RequestParam String topic, @RequestParam String key, @RequestBody StatInDto dto){
+    public void sendRecord(@RequestParam String topic, @RequestBody StatInDto dto){
+    //public void sendRecord(@RequestParam String topic, @RequestParam String key, @RequestBody StatInDto dto){
         ProducerRecord<String, StatInDto> producerRecord =
-                new ProducerRecord<>(topic,0, Instant.now().toEpochMilli(), key, dto);
+                new ProducerRecord<>(topic,0, Instant.now().toEpochMilli(), dto.getUri(), dto);
+                //new ProducerRecord<>(topic,0, Instant.now().toEpochMilli(), key, dto);
         CompletableFuture<SendResult<String, StatInDto>> future = kafkaTemplate.send(producerRecord);
         future.whenComplete((ok,ex) -> {
             if (ok != null) {
@@ -71,13 +75,15 @@ public class MsgController {
     }
 
     @PostMapping("/send-message")
-    public void sendMessage(@RequestParam String topic, @RequestParam String key, @RequestBody StatInDto dto){
+    //public void sendMessage(@RequestParam String topic, @RequestParam String key, @RequestBody StatInDto dto){
+    public void sendMessage(@RequestParam String topic, @RequestBody StatInDto dto){
         //создаем заголовки
         HashMap<String, Object> headersMap = new HashMap<>();
         headersMap.put(KafkaHeaders.TOPIC, topic);
         headersMap.put(KafkaHeaders.PARTITION, 0);
         headersMap.put(KafkaHeaders.TIMESTAMP, Instant.now().toEpochMilli());
-        headersMap.put(KafkaHeaders.KEY, key);
+        //headersMap.put(KafkaHeaders.KEY, dto.getUri());
+        headersMap.put("FORWARDED_KEY", dto.getUri());
         MessageHeaders messageHeaders = new MessageHeaders(headersMap);
         //создаем сообщение с заголовками
         Message<StatInDto> message = new GenericMessage<>(dto, messageHeaders);

@@ -10,6 +10,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 import ru.yandex.grand1964.kafka_demo.dto.StatInDto;
+import ru.yandex.grand1964.kafka_demo.dto.StatPartDto;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -37,7 +38,17 @@ public class KafkaProducerConfig {
     }
 
     @Bean
+    public ProducerFactory<String, StatPartDto> replyingProducerFactory() {
+        return new DefaultKafkaProducerFactory<>(producerConfigs());
+    }
+
+    @Bean
     public KafkaTemplate<String, StatInDto> kafkaTemplate() {
         return new KafkaTemplate<>(producerFactory());
+    }
+
+    @Bean
+    public KafkaTemplate<String, StatPartDto> replyingKafkaTemplate() {
+        return new KafkaTemplate<>(replyingProducerFactory());
     }
 }
