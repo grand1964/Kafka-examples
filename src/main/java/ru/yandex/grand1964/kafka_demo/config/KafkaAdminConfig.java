@@ -18,8 +18,6 @@ public class KafkaAdminConfig {
     public KafkaAdmin kafkaAdmin() {
         Map<String, Object> configs = new HashMap<>();
         configs.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaServer);
-        //configs.put("auto.create.topics.enable", false);
-        //configs.put("offsets.topic.num.partitions", 10);
         return new KafkaAdmin(configs);
     }
 }
