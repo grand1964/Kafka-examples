@@ -27,6 +27,8 @@ public class KafkaProducerConfig {
     @Value("${spring.kafka.bootstrap-servers}")
     private String kafkaServer;
 
+    //////////////////////////// Параметры продюсера /////////////////////////
+
     @Bean
     public Map<String, Object> producerConfigs() {
         Map<String, Object> props = new HashMap<>();
@@ -39,10 +41,21 @@ public class KafkaProducerConfig {
         return props;
     }
 
+    /////////////////////////// Основная конфигурация ////////////////////////
+
+    //TODO Сделать фабрику с мультитипами
+
+    @Bean
+    public KafkaTemplate<String, StatInDto> kafkaTemplate() {
+        return new KafkaTemplate<>(producerFactory());
+    }
+
     @Bean
     public ProducerFactory<String, StatInDto> producerFactory() {
         return new DefaultKafkaProducerFactory<>(producerConfigs());
     }
+
+    ////////////////////////// Конфигурация пересылки ////////////////////////
 
     @Bean
     public ProducerFactory<String, StatPartDto> replyingProducerFactory() {
@@ -50,67 +63,7 @@ public class KafkaProducerConfig {
     }
 
     @Bean
-    public KafkaTemplate<String, StatInDto> kafkaTemplate() {
-        //return new KafkaTemplate<>(producerFactory());
-        //TODO Убрать !!!!!!!!
-        return new KafkaTemplate<>(producerFactory()) {
-            @Override
-            @Nonnull
-            public CompletableFuture<SendResult<String, StatInDto>> send(@Nonnull Message<?> message) {
-                return super.send(message);
-            }
-        };
-    }
-
-    @Bean
     public KafkaTemplate<String, StatPartDto> replyingKafkaTemplate() {
-        return new KafkaTemplate<>(replyingProducerFactory()) {
-            //@Override
-            //public CompletableFuture<SendResult<String, StatPartDto>> send(String topic,
-            //StatPartDto data) {
-            //    return super.send(topic, 0, keyForData(data), data);
-            //}
-
-            @Override
-            @Nonnull
-            public CompletableFuture<SendResult<String, StatPartDto>> send(@Nonnull Message<?> message) {
-                //TODO Версия с переопределением
-                /*return super.send(topicForData(message), partitionForData(message),
-                        keyForData(message), (StatPartDto) message.getPayload());*/
-                //TODO А это - без него
-                return super.send(message);
-            }
-
-            private String keyForData(Message<?> message) {
-                return ((StatPartDto) message.getPayload()).getUri();
-            }
-
-            @Nonnull
-            private String topicForData(Message<?> message) {
-                //String topic = (String) message.getHeaders().get("kafka_topic");
-                String topic = (String) message.getHeaders().get(KafkaHeaders.TOPIC);
-                return Objects.requireNonNullElse(topic, "");
-            }
-
-            @Nonnull
-            private Integer partitionForData(Message<?> message) {
-                //Integer partition = (Integer) message.getHeaders().get("kafka_partition");
-                Integer partition = (Integer) message.getHeaders().get(KafkaHeaders.PARTITION);
-                return Objects.requireNonNullElse(partition, 0);
-            }
-        };
+        return new KafkaTemplate<>(replyingProducerFactory());
     }
-
-        /*return new KafkaTemplate<>(replyingProducerFactory()) {
-            @Override
-            public CompletableFuture<SendResult<String, StatPartDto>> send(String topic,
-                                                                      StatPartDto data) {
-                return super.send(topic, 0, keyForData(data), data);
-            }
-
-            private String keyForData(StatPartDto statPartDto) {
-                return statPartDto.getUri();
-            }
-
-        };*/
 }
