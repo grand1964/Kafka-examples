@@ -46,13 +46,19 @@ public class KafkaProducerConfig {
     //TODO Сделать фабрику с мультитипами
 
     @Bean
-    public KafkaTemplate<String, StatInDto> kafkaTemplate() {
-        return new KafkaTemplate<>(producerFactory());
+    public ProducerFactory<String, StatInDto> producerFactory() {
+        return new DefaultKafkaProducerFactory<>(producerConfigs());
     }
 
     @Bean
-    public ProducerFactory<String, StatInDto> producerFactory() {
-        return new DefaultKafkaProducerFactory<>(producerConfigs());
+    public KafkaTemplate<String, StatInDto> kafkaTemplate() {
+        //TODO Убрать!!!
+        return new KafkaTemplate<>(producerFactory()) {
+            @Override
+            public CompletableFuture<SendResult<String, StatInDto>> send(Message<?> message) {
+                return super.send(message);
+            }
+        };
     }
 
     ////////////////////////// Конфигурация пересылки ////////////////////////
@@ -64,6 +70,13 @@ public class KafkaProducerConfig {
 
     @Bean
     public KafkaTemplate<String, StatPartDto> replyingKafkaTemplate() {
-        return new KafkaTemplate<>(replyingProducerFactory());
+        //return new KafkaTemplate<>(replyingProducerFactory());
+        return new KafkaTemplate<>(replyingProducerFactory()) {
+            //TODO Убрать!!!
+            @Override
+            public CompletableFuture<SendResult<String, StatPartDto>> send(Message<?> message) {
+                return super.send(message);
+            }
+        };
     }
 }
