@@ -1,6 +1,7 @@
 package ru.yandex.grand1964.kafka_demo.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.datetime.DateFormatter;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.kafka.support.SendResult;
@@ -10,23 +11,21 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.grand1964.kafka_demo.dto.StatInDto;
 import ru.yandex.grand1964.kafka_demo.service.TopicService;
 
+import java.text.ParseException;
 import java.time.Instant;
+import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequestMapping
 public class MsgController {
     private final KafkaTemplate<String, StatInDto> kafkaTemplate;
-    //private final KafkaAdmin kafkaAdmin;
     private final TopicService topicService;
 
     @Autowired
     public MsgController(KafkaTemplate<String, StatInDto> kafkaTemplate,
-                         //KafkaAdmin kafkaAdmin,
                          TopicService topicService) {
         this.kafkaTemplate = kafkaTemplate;
-        //this.kafkaAdmin = kafkaAdmin;
-        //kafkaTemplate.setKafkaAdmin(kafkaAdmin);
         this.topicService = topicService;
     }
 
@@ -35,30 +34,32 @@ public class MsgController {
     public void createTopic(@PathVariable String topicName,
                             @RequestParam(defaultValue = "1") int partitionCount,
                             @RequestParam(defaultValue = "1") short replicaCount) {
+        //создание темы - в службе тем
         topicService.topic(topicName, partitionCount, replicaCount);
-        /*NewTopic newTopic = TopicBuilder.name(topicName)
-                .partitions(partitionCount)
-                .replicas(replicaCount)
-                .config(TopicConfig.MESSAGE_TIMESTAMP_TYPE_CONFIG, TimestampType.CREATE_TIME.toString())
-                .build();
-        kafkaAdmin.createOrModifyTopics(newTopic);*/
     }
 
-    //посылка полных данных в Kafka в формате message
+    //посылка полных данных в Kafka в формате message БЕЗ КЛЮЧА !!!!!!!
     @PostMapping("/send-message")
-    //public void sendMessage(@RequestParam String topic, @RequestParam String key, @RequestBody StatInDto dto){
     public void sendMessage(@RequestParam String topic, @RequestBody StatInDto dto) {
+        //создаем тему, соответствующую приложению (если ее еще нет)
+        topicService.topic(dto.getApp(),1, (short) 1);
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException("xxx");
+        }
+        //создаем сообщение (время назначается сервером)
         Message<StatInDto> message = MessageBuilder.withPayload(dto)
                 .setHeader(KafkaHeaders.TOPIC, topic)
                 .setHeader(KafkaHeaders.PARTITION, 0)
-                .setHeader(KafkaHeaders.TIMESTAMP, Instant.now().minusMillis(1234567L).toEpochMilli())
-                //.setHeader(KafkaHeaders.TIMESTAMP_TYPE, TimestampType.LOG_APPEND_TIME)
-                .setHeader(KafkaHeaders.KEY, dto.getUri())
+                //.setHeader(KafkaHeaders.TIMESTAMP, Instant.now().toEpochMilli())
+                //.setHeader(KafkaHeaders.TIMESTAMP, Instant.now().minusMillis(1234567L).toEpochMilli())
+                //TODO Нельзя посылать без ключа в сжатую тему!!!
+                .setHeader(KafkaHeaders.KEY, "common_key") //фиктивный ключ
                 .build();
-        //TODO Ввести конвертацию времени из Payload
         //посылаем сообщение
         CompletableFuture<SendResult<String, StatInDto>> future = kafkaTemplate.send(message);
-        future.whenComplete((ok,ex) -> {
+        future.whenComplete((ok, ex) -> {
             if (ok != null) {
                 System.out.println(ok);
             } else {

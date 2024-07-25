@@ -1,6 +1,7 @@
 package ru.yandex.grand1964.kafka_demo.config;
 
 import jakarta.annotation.Nonnull;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -52,13 +53,7 @@ public class KafkaProducerConfig {
 
     @Bean
     public KafkaTemplate<String, StatInDto> kafkaTemplate() {
-        //TODO Убрать!!!
-        return new KafkaTemplate<>(producerFactory()) {
-            @Override
-            public CompletableFuture<SendResult<String, StatInDto>> send(Message<?> message) {
-                return super.send(message);
-            }
-        };
+        return new KafkaTemplate<>(producerFactory());
     }
 
     ////////////////////////// Конфигурация пересылки ////////////////////////
@@ -70,13 +65,6 @@ public class KafkaProducerConfig {
 
     @Bean
     public KafkaTemplate<String, StatPartDto> replyingKafkaTemplate() {
-        //return new KafkaTemplate<>(replyingProducerFactory());
-        return new KafkaTemplate<>(replyingProducerFactory()) {
-            //TODO Убрать!!!
-            @Override
-            public CompletableFuture<SendResult<String, StatPartDto>> send(Message<?> message) {
-                return super.send(message);
-            }
-        };
+        return new KafkaTemplate<>(replyingProducerFactory());
     }
 }
