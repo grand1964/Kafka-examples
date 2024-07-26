@@ -24,10 +24,9 @@ public class KafkaAdminConfig {
     @Bean
     public NewTopic commonTopic() {
         return TopicBuilder.name(MAIN_TOPIC)
-                .partitions(1)  //одна секция, поскольку тема сжатая и без ключа
+                .partitions(1)  //одна секция, поскольку у темы нет потребителей
                 .replicas(1) //без репликации, поскольку тема - перевалочный этап
                 .config(TopicConfig.MESSAGE_TIMESTAMP_TYPE_CONFIG, TimestampType.LOG_APPEND_TIME.toString())
-                .compact() //сообщения не накапливаются
                 .build();
     }
 

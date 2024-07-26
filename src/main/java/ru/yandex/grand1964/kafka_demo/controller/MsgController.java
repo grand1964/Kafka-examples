@@ -38,7 +38,7 @@ public class MsgController {
         topicService.topic(topicName, partitionCount, replicaCount);
     }
 
-    //посылка полных данных в Kafka в формате message БЕЗ КЛЮЧА !!!!!!!
+    //посылка полных данных в Kafka в формате message БЕЗ КЛЮЧА
     @PostMapping("/send-message")
     public void sendMessage(@RequestParam String topic, @RequestBody StatInDto dto) {
         //создаем тему, соответствующую приложению (если ее еще нет)
@@ -52,10 +52,7 @@ public class MsgController {
         Message<StatInDto> message = MessageBuilder.withPayload(dto)
                 .setHeader(KafkaHeaders.TOPIC, topic)
                 .setHeader(KafkaHeaders.PARTITION, 0)
-                //.setHeader(KafkaHeaders.TIMESTAMP, Instant.now().toEpochMilli())
-                //.setHeader(KafkaHeaders.TIMESTAMP, Instant.now().minusMillis(1234567L).toEpochMilli())
-                //TODO Нельзя посылать без ключа в сжатую тему!!!
-                .setHeader(KafkaHeaders.KEY, "common_key") //фиктивный ключ
+                //других заголовков не надо: время назначает система, а ключ не нужен
                 .build();
         //посылаем сообщение
         CompletableFuture<SendResult<String, StatInDto>> future = kafkaTemplate.send(message);
