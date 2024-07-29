@@ -1,31 +1,46 @@
 package ru.yandex.grand1964.kafka_demo.listener;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.handler.annotation.Headers;
-import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
 import ru.yandex.grand1964.kafka_demo.dto.StatInDto;
 import ru.yandex.grand1964.kafka_demo.dto.StatPartDto;
 
-import java.time.*;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 
 @Service
 public class MyKafkaListeners {
+    ConcurrentKafkaListenerContainerFactory<String, Object> multiKafkaListenerContainerFactory;
+    KafkaTemplate<String, Object> replyKafkaTemplate;
+
+    @Autowired
+    public MyKafkaListeners(ConcurrentKafkaListenerContainerFactory<String, Object> kafkaListenerContainerFactory,
+                            KafkaTemplate<String, Object> kafkaTemplate) {
+        multiKafkaListenerContainerFactory = kafkaListenerContainerFactory;
+        replyKafkaTemplate = kafkaTemplate;
+        multiKafkaListenerContainerFactory.setReplyTemplate(kafkaTemplate);
+    }
+
     @KafkaListener(groupId = "${consumer.main.group-id}", topics = "${main.topic.name}", clientIdPrefix = "full",
-            containerFactory = "inKafkaListenerContainerFactory")
+            containerFactory = "multiKafkaListenerContainerFactory")
     @SendTo("${topic.prefix}!{request.value().getApp()}")
-    public Message<StatPartDto> handleFullStat(@Payload StatInDto statInDto,
+    public Message<StatPartDto> handleFullStat(ConsumerRecord<String,Object> consumerRecord,
                                                @Headers MessageHeaders headers) {
-        System.out.println("THAT IS COMMON-CONSUMER!!!!!!!!!");
+        System.out.println("Headers for full message:");
         System.out.println(headers);
+        StatInDto statInDto = (StatInDto) consumerRecord.value();
         //преобразуем время из вложения в UNIX-формат
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         long dateMillis = LocalDateTime.parse(statInDto.getTimestamp(), formatter)
@@ -41,9 +56,11 @@ public class MyKafkaListeners {
 
     @KafkaListener(groupId = "${consumer.client.group-id}",
             topicPattern = "${topic.prefix}.*", clientIdPrefix = "part",
-            containerFactory = "outKafkaListenerContainerFactory", properties = "metadata.max.age.ms:1000")
+            containerFactory = "multiKafkaListenerContainerFactory")
+            //, properties = "metadata.max.age.ms:1000")
     public void handlePartStat(ConsumerRecord<String, StatPartDto> record,
                                @Headers MessageHeaders headers) {
+        System.out.println("Headers for replied message:");
         System.out.println(headers);
         System.out.println("Partial stat received: ");
         System.out.println("Payload: " + record.value());
