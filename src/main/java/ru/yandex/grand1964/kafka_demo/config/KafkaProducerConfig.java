@@ -9,8 +9,6 @@ import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JsonSerializer;
-import ru.yandex.grand1964.kafka_demo.dto.StatInDto;
-import ru.yandex.grand1964.kafka_demo.dto.StatPartDto;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -20,8 +18,12 @@ public class KafkaProducerConfig {
     @Value("${spring.kafka.bootstrap-servers}")
     private String kafkaServer;
 
+    ///////////////////////// Многотипная конфигурация ///////////////////////
+
+    //Фабрика продюсера с отображением типов
     @Bean
-    public Map<String, Object> producerConfigs() {
+    public ProducerFactory<String, Object> multiProducerFactory() {
+        //параметры продюсера
         Map<String, Object> props = new HashMap<>();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,
                 kafkaServer);
@@ -29,26 +31,16 @@ public class KafkaProducerConfig {
                 StringSerializer.class);
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
                 JsonSerializer.class);
-        return props;
+        //отображение типов
+        props.put(JsonSerializer.TYPE_MAPPINGS,
+                "full:ru.yandex.grand1964.kafka_demo.dto.StatInDto," +
+                        "part:ru.yandex.grand1964.kafka_demo.dto.StatPartDto");
+        return new DefaultKafkaProducerFactory<>(props);
     }
 
+    //Template для работы с разными типами
     @Bean
-    public ProducerFactory<String, StatInDto> producerFactory() {
-        return new DefaultKafkaProducerFactory<>(producerConfigs());
-    }
-
-    @Bean
-    public ProducerFactory<String, StatPartDto> replyingProducerFactory() {
-        return new DefaultKafkaProducerFactory<>(producerConfigs());
-    }
-
-    @Bean
-    public KafkaTemplate<String, StatInDto> kafkaTemplate() {
-        return new KafkaTemplate<>(producerFactory());
-    }
-
-    @Bean
-    public KafkaTemplate<String, StatPartDto> replyingKafkaTemplate() {
-        return new KafkaTemplate<>(replyingProducerFactory());
+    public KafkaTemplate<String, Object> multiKafkaTemplate() {
+        return new KafkaTemplate<>(multiProducerFactory());
     }
 }
