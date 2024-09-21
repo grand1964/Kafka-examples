@@ -22,6 +22,8 @@ import java.time.format.DateTimeFormatter;
 
 @Service
 public class MyKafkaListeners {
+    //@Autowired
+    //ConcurrentKafkaListenerContainerFactory<String, Integer> tempKafkaListenerContainerFactory;
     ConcurrentKafkaListenerContainerFactory<String, Object> multiKafkaListenerContainerFactory;
     KafkaTemplate<String, Object> replyKafkaTemplate;
 
@@ -56,8 +58,8 @@ public class MyKafkaListeners {
 
     @KafkaListener(groupId = "${consumer.client.group-id}",
             topicPattern = "${topic.prefix}.*", clientIdPrefix = "part",
-            containerFactory = "multiKafkaListenerContainerFactory")
-            //, properties = "metadata.max.age.ms:1000")
+            containerFactory = "multiKafkaListenerContainerFactory",
+            properties = "metadata.max.age.ms:1000")
     public void handlePartStat(ConsumerRecord<String, StatPartDto> record,
                                @Headers MessageHeaders headers) {
         System.out.println("Headers for replied message:");
@@ -73,4 +75,27 @@ public class MyKafkaListeners {
                 //ZoneId.of("UTC+3"));
         System.out.println("Timestamp: " + dateTime.format(formatter));
     }
+
+    //TODO ЭКСПЕРИМЕНТ БЕЗ ПРЕОБРАЗОВАНИЙ ТИПА ???????????????????
+    /*@KafkaListener(groupId = "sink-group1", topics = "sink-topic",
+            containerFactory = "multiKafkaListenerContainerFactory")
+    public void handleStreamResult(ConsumerRecord<String, StatPartDto> record) {
+        System.out.println("Stream result received: ");
+        System.out.println("Key: " + record.key());
+        System.out.println("Payload: " + record.value());
+        System.out.println("topic: " + record.topic());
+        System.out.println("partition: " + record.partition());
+    }*/
+
+    //TODO Вернуть !!!!!!!!!
+
+    /*@KafkaListener(groupId = "sink-group1", topics = "stat-sink",
+        containerFactory = "tempKafkaListenerContainerFactory")
+    public void handleStreamResult(ConsumerRecord<String, Long> record) {
+        System.out.println("Stream result received: ");
+        System.out.println("Key: " + record.key());
+        System.out.println("Payload: " + record.value());
+        System.out.println("topic: " + record.topic());
+        System.out.println("partition: " + record.partition());
+    }*/
 }

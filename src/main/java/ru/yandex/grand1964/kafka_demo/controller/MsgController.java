@@ -1,6 +1,7 @@
 package ru.yandex.grand1964.kafka_demo.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.config.StreamsBuilderFactoryBean;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.kafka.support.SendResult;
@@ -15,6 +16,8 @@ import java.util.concurrent.CompletableFuture;
 @RestController
 @RequestMapping
 public class MsgController {
+    /*@Autowired
+    private StreamsBuilderFactoryBean defaultKafkaStreamsBuilder;*/
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final TopicService topicService;
 
@@ -56,4 +59,10 @@ public class MsgController {
         });
         kafkaTemplate.flush();
     }
+
+    //TODO ??????????????????????????????????
+    /*@PostMapping("/start-stream")
+    public void startStream() {
+        defaultKafkaStreamsBuilder.start();
+    }*/
 }

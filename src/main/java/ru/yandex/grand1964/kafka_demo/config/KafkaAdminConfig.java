@@ -30,6 +30,26 @@ public class KafkaAdminConfig {
                 .build();
     }
 
+    //TODO Убрать !!!!!!!!!!!!!!!!!
+    @Bean
+    public NewTopic replyTopic() {
+        return TopicBuilder.name("app_name-ewm-main-service")
+                .partitions(1)  //одна секция, поскольку у темы нет потребителей
+                .replicas(1) //без репликации, поскольку тема - перевалочный этап
+                .config(TopicConfig.MESSAGE_TIMESTAMP_TYPE_CONFIG, TimestampType.CREATE_TIME.toString())
+                .build();
+    }
+
+    //TODO Убрать !!!!!!!!!!!!!!!!!
+    @Bean
+    public NewTopic sinkTopic() {
+        return TopicBuilder.name("sink-topic")
+                .partitions(1)  //одна секция, поскольку у темы нет потребителей
+                .replicas(1) //без репликации, поскольку тема - перевалочный этап
+                .config(TopicConfig.MESSAGE_TIMESTAMP_TYPE_CONFIG, TimestampType.CREATE_TIME.toString())
+                .build();
+    }
+
     @Bean
     public KafkaAdmin kafkaAdmin() {
         Map<String, Object> configs = new HashMap<>();

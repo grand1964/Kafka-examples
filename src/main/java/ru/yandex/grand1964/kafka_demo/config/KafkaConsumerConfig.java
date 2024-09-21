@@ -1,6 +1,7 @@
 package ru.yandex.grand1964.kafka_demo.config;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.common.serialization.LongDeserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,7 +32,8 @@ public class KafkaConsumerConfig {
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
         props.put(JsonDeserializer.TYPE_MAPPINGS,
                 "full:ru.yandex.grand1964.kafka_demo.dto.StatInDto," +
-                        "part:ru.yandex.grand1964.kafka_demo.dto.StatPartDto");
+                        "part:ru.yandex.grand1964.kafka_demo.dto.StatPartDto" +
+                        "out:ru.yandex.grand1964.kafka_demo.dto.StatOutDto");
         props.put(JsonDeserializer.TRUSTED_PACKAGES, "ru.yandex.grand1964.kafka_demo.dto");
         return new DefaultKafkaConsumerFactory<>(props);
     }
@@ -44,4 +46,24 @@ public class KafkaConsumerConfig {
         factory.setReplyTemplate(replyingKafkaTemplate);
         return factory;
     }
+
+    //TODO Вернуть !!!!!!!!!!!!!!!!!!!!
+
+    /*@Bean
+    public ConsumerFactory<String, Long> tempConsumerFactory() {
+        HashMap<String, Object> props = new HashMap<>();
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaServer);
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, LongDeserializer.class);
+        props.put(JsonDeserializer.TRUSTED_PACKAGES, "ru.yandex.grand1964.kafka_demo.dto");
+        return new DefaultKafkaConsumerFactory<>(props);
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, Long> tempKafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, Long> factory =
+                new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(tempConsumerFactory());
+        return factory;
+    }*/
 }
