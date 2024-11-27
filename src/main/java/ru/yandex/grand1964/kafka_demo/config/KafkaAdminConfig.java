@@ -17,13 +17,14 @@ import java.util.Map;
 public class KafkaAdminConfig {
     @Value("${spring.kafka.bootstrap-servers}")
     private String kafkaServer;
-    @Value("${main.topic.name}")
-    private String MAIN_TOPIC;
+    //TODO Убрать!!!
+    @Value("${input.topic.name}")
+    private String INPUT_TOPIC_NAME;
 
     //конфигурация общей темы
-    @Bean
+    /*@Bean
     public NewTopic commonTopic() {
-        return TopicBuilder.name(MAIN_TOPIC)
+        return TopicBuilder.name(INPUT_TOPIC_NAME)
                 .partitions(1)  //одна секция, поскольку у темы нет потребителей
                 .replicas(1) //без репликации, поскольку тема - перевалочный этап
                 .config(TopicConfig.MESSAGE_TIMESTAMP_TYPE_CONFIG, TimestampType.LOG_APPEND_TIME.toString())
@@ -43,12 +44,12 @@ public class KafkaAdminConfig {
     //TODO Убрать !!!!!!!!!!!!!!!!!
     @Bean
     public NewTopic sinkTopic() {
-        return TopicBuilder.name("sink-topic")
+        return TopicBuilder.name("sink")
                 .partitions(1)  //одна секция, поскольку у темы нет потребителей
                 .replicas(1) //без репликации, поскольку тема - перевалочный этап
                 .config(TopicConfig.MESSAGE_TIMESTAMP_TYPE_CONFIG, TimestampType.CREATE_TIME.toString())
                 .build();
-    }
+    }*/
 
     @Bean
     public KafkaAdmin kafkaAdmin() {

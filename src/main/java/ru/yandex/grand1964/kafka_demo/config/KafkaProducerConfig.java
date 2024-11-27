@@ -34,7 +34,7 @@ public class KafkaProducerConfig {
         //отображение типов
         props.put(JsonSerializer.TYPE_MAPPINGS,
                 "full:ru.yandex.grand1964.kafka_demo.dto.StatInDto," +
-                        "part:ru.yandex.grand1964.kafka_demo.dto.StatPartDto" +
+                        "part:ru.yandex.grand1964.kafka_demo.dto.StatPartDto," +
                         "out:ru.yandex.grand1964.kafka_demo.dto.StatOutDto");
         return new DefaultKafkaProducerFactory<>(props);
     }

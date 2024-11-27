@@ -13,6 +13,7 @@ import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
 import ru.yandex.grand1964.kafka_demo.dto.StatInDto;
+import ru.yandex.grand1964.kafka_demo.dto.StatOutDto;
 import ru.yandex.grand1964.kafka_demo.dto.StatPartDto;
 
 import java.time.Instant;
@@ -21,6 +22,46 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 
 @Service
+public class MyKafkaListeners {
+    ConcurrentKafkaListenerContainerFactory<String, Object> multiKafkaListenerContainerFactory;
+
+    @Autowired
+    public MyKafkaListeners(ConcurrentKafkaListenerContainerFactory<String, Object> kafkaListenerContainerFactory) {
+        multiKafkaListenerContainerFactory = kafkaListenerContainerFactory;
+    }
+
+    @KafkaListener(groupId = "${consumer.input.group-id}", topics = "${topic.prefix}${input.topic.name}",
+            clientIdPrefix = "part", containerFactory = "multiKafkaListenerContainerFactory")
+    public void handleFullStat(ConsumerRecord<String, StatPartDto> record, @Headers MessageHeaders headers) {
+        System.out.println("Headers for replied message:");
+        System.out.println(headers);
+        System.out.println("Partial stat received: ");
+        System.out.println("Payload: " + record.value());
+        System.out.println("Key: " + record.key());
+        System.out.println("topic: " + record.topic());
+        System.out.println("partition: " + record.partition());
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy'T'HH:mm:ss");
+        LocalDateTime dateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(record.timestamp()),
+                ZoneOffset.of("+03:00"));
+        //ZoneId.of("UTC+3"));
+        System.out.println("Timestamp: " + dateTime.format(formatter));
+    }
+
+    @KafkaListener(groupId = "${consumer.sink.group-id}", topics = "${sink.topic.name}", clientIdPrefix = "out",
+            containerFactory = "multiKafkaListenerContainerFactory")
+    public void handleOutStat(ConsumerRecord<String, StatOutDto> record) {
+        System.out.println("Out stat received: ");
+        System.out.println("Payload: " + record.value());
+        System.out.println("Key: " + record.key());
+        System.out.println("topic: " + record.topic());
+        System.out.println("partition: " + record.partition());
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy'T'HH:mm:ss");
+        LocalDateTime dateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(record.timestamp()),
+                ZoneOffset.of("+03:00"));
+        System.out.println("Timestamp: " + dateTime.format(formatter));
+    }
+
+/*@Service
 public class MyKafkaListeners {
     //@Autowired
     //ConcurrentKafkaListenerContainerFactory<String, Integer> tempKafkaListenerContainerFactory;
@@ -74,7 +115,7 @@ public class MyKafkaListeners {
                 ZoneOffset.of("+03:00"));
                 //ZoneId.of("UTC+3"));
         System.out.println("Timestamp: " + dateTime.format(formatter));
-    }
+    }*/
 
     //TODO ЭКСПЕРИМЕНТ БЕЗ ПРЕОБРАЗОВАНИЙ ТИПА ???????????????????
     /*@KafkaListener(groupId = "sink-group1", topics = "sink-topic",

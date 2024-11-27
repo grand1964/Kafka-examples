@@ -4,6 +4,9 @@ import org.apache.kafka.streams.processor.api.ContextualProcessor;
 import org.apache.kafka.streams.processor.api.ProcessorContext;
 import org.apache.kafka.streams.processor.api.Record;
 import org.apache.kafka.streams.state.KeyValueStore;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.stereotype.Component;
 import ru.yandex.grand1964.kafka_demo.dto.StatOutDto;
 import ru.yandex.grand1964.kafka_demo.dto.StatPartDto;
 
@@ -13,13 +16,17 @@ import java.util.HashSet;
 public class DistinctFilterProcessor extends
         ContextualProcessor<String, StatPartDto, String, StatOutDto> {
     private static final String STATE_STORE_DISTINCT = "distinctStore";
-    private static final String TOPIC_NAME = "common";
-
+    private final String topicName;
     private ProcessorContext<String, StatOutDto> context;
     private KeyValueStore<String, HashSet<String>> store;
 
+    public DistinctFilterProcessor(String topicName) {
+        this.topicName = topicName;
+    }
+
     @Override
     public void init(ProcessorContext<String, StatOutDto> context) {
+        super.init(context);
         this.context = context;
         store = context.getStateStore(STATE_STORE_DISTINCT);
     }
@@ -31,16 +38,20 @@ public class DistinctFilterProcessor extends
         StatPartDto v = record.value(); //входное значение
         HashSet<String> ips = store.get(key); //все ip с заданным URI
         //генерируем выходное значение с count=1
-        StatOutDto vNew = new StatOutDto(TOPIC_NAME, key, 1L);
+        StatOutDto vNew = new StatOutDto(topicName, key, 1L);
+        //преобразованная запись
+        Record<String, StatOutDto> processedRecord = record.withValue(vNew);
         if (ips == null) { //такого URI еще не было
             //пишем в хранилище по заданному URI одноэлементное множество
             store.put(key, new HashSet<>(Collections.singleton(v.getIp())));
             //отправляем преобразованную запись дальше по цепочке
-            context.forward(record.withValue(vNew));
+            //context.forward(record.withValue(vNew));
+            context.forward(processedRecord);
         } else if (!ips.contains(v.getIp())) { //URI уже был, но не с таким ip
             ips.add(v.getIp()); //добавляем новый ip в множество
             store.put(key, ips); //пишем новое множество в хранилище
-            context.forward(record.withValue(vNew)); //отправляем запись дальше
+            context.forward(processedRecord); //отправляем запись дальше
+            //context.forward(record.withValue(vNew)); //отправляем запись дальше
         }
         //если пара (URI, ip) уже есть - запись дальше не отправляется
     }

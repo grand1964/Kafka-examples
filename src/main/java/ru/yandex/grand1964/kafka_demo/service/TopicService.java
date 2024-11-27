@@ -21,15 +21,16 @@ import java.util.concurrent.ExecutionException;
 public class TopicService {
     @Autowired
     private final KafkaAdmin kafkaAdmin;
-    @Value("${topic.prefix}")
-    private String TOPIC_PREFIX;
+    //@Value("${topic.prefix}")
+    //private String TOPIC_PREFIX;
 
     public TopicService(KafkaAdmin kafkaAdmin) {
         this.kafkaAdmin = kafkaAdmin;
     }
 
     public void topic(String topicName, int partitionCount, short replicaCount) {
-        NewTopic newTopic = TopicBuilder.name(TOPIC_PREFIX + topicName)
+        //NewTopic newTopic = TopicBuilder.name(TOPIC_PREFIX + topicName)
+        NewTopic newTopic = TopicBuilder.name(topicName)
                 .partitions(partitionCount)
                 .replicas(replicaCount)
                 .config(TopicConfig.MESSAGE_TIMESTAMP_TYPE_CONFIG, TimestampType.CREATE_TIME.toString())

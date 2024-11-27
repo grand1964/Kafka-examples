@@ -19,8 +19,8 @@ import java.util.HashMap;
 @EnableKafka
 @Configuration
 public class KafkaConsumerConfig {
-    @Autowired
-    KafkaTemplate<String, Object> replyingKafkaTemplate;
+    /*@Autowired
+    KafkaTemplate<String, Object> replyingKafkaTemplate;*/
     @Value("${spring.kafka.bootstrap-servers}")
     private String kafkaServer;
 
@@ -32,7 +32,7 @@ public class KafkaConsumerConfig {
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
         props.put(JsonDeserializer.TYPE_MAPPINGS,
                 "full:ru.yandex.grand1964.kafka_demo.dto.StatInDto," +
-                        "part:ru.yandex.grand1964.kafka_demo.dto.StatPartDto" +
+                        "part:ru.yandex.grand1964.kafka_demo.dto.StatPartDto," +
                         "out:ru.yandex.grand1964.kafka_demo.dto.StatOutDto");
         props.put(JsonDeserializer.TRUSTED_PACKAGES, "ru.yandex.grand1964.kafka_demo.dto");
         return new DefaultKafkaConsumerFactory<>(props);
@@ -43,7 +43,8 @@ public class KafkaConsumerConfig {
         ConcurrentKafkaListenerContainerFactory<String, Object> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(multiConsumerFactory());
-        factory.setReplyTemplate(replyingKafkaTemplate);
+        //TODO ПРОВЕРИТЬ!!!!!!!!!!!!!!
+        //factory.setReplyTemplate(replyingKafkaTemplate);
         return factory;
     }
 

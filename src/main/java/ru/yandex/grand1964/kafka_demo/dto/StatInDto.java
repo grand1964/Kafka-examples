@@ -16,4 +16,8 @@ public class StatInDto {
     public String toString() {
         return String.format("{\"app\":%s,\"uri\":%s,\"ip\":%s,\"timestamp:\":%s}",app,uri,ip,timestamp);
     }
+
+    public StatPartDto toPartDto() {
+        return new StatPartDto(uri, ip, timestamp);
+    }
 }

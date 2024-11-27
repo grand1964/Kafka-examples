@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.kafka.support.mapping.DefaultJackson2JavaTypeMapper;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
+import ru.yandex.grand1964.kafka_demo.TestUtils;
 import ru.yandex.grand1964.kafka_demo.dto.StatOutDto;
 import ru.yandex.grand1964.kafka_demo.dto.StatPartDto;
 
